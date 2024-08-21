@@ -6,7 +6,7 @@ public interface IWillThrowComplete
 {
     IWillTry And();
 
-    // IWillFinally Finally();
+    IWillFinally Finally(Action finalAction);
 
     Action Build();
 

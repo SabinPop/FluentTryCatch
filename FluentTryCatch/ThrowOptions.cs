@@ -75,7 +75,7 @@ internal sealed class ThrowOptions : IWillThrowWithMessage
         return Parent;
     }
 
-    public IWillFinally Finally()
+    public IWillFinally Finally(Action finalAction)
     {
         return (IWillFinally)Parent;
     }

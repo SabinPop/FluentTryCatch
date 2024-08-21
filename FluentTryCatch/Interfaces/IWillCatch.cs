@@ -2,7 +2,7 @@
 
 namespace FluentTryCatch.Interfaces;
 
-public interface IWillCatch
+public interface IWillCatch : IWillFinally
 {
     Type CatchedType { get; }
 
