@@ -1,5 +1,4 @@
 using FluentAssertions;
-using FluentTryCatch;
 
 namespace Tests;
 
@@ -142,66 +141,5 @@ public class FunctionalTests
         actionToTest.Should().NotBeNull();
         actionOrder.Should().HaveCount(3);
         actionOrder.Should().BeInAscendingOrder();
-    }
-
-    private Action ActionToTest1()
-	{
-		return Try
-				.To(() =>
-				{
-					throw new InvalidOperationException("test");
-				})
-				.Catch<InvalidOperationException>(() =>
-				{
-					Console.WriteLine("catch");
-				})
-				.Throw<InvalidOperationException>()
-					.WithMessage("test")
-					.WithInnerException(true)
-				.And()
-				.Catch<ArgumentException>(() =>
-				{
-					Console.WriteLine("catch arg exception");
-				})
-				.Rethrow()
-				.Build();
-	}
-
-	private Action ActionToTest2()
-	{
-		return Try
-				.To(() =>
-				{
-					throw new ArgumentException("test argument exception");
-				})
-				.Catch<InvalidOperationException>(() =>
-				{
-					Console.WriteLine("catch");
-				})
-				.Throw<InvalidOperationException>()
-					.WithMessage("test")
-					.WithInnerException(true)
-				.And()
-				.Catch<ArgumentException>(() =>
-				{
-					Console.WriteLine("catch arg exception");
-				})
-				.Rethrow()
-				.Build();
-	}
-
-    private Action ActionToTest3()
-    {
-		return Try
-				.To(() =>
-				{
-					throw new ArgumentException("test argument exception");
-				})
-				.Catch<InvalidOperationException>(() =>
-				{
-					Console.WriteLine("catch");
-				})
-				.Rethrow()
-				.Build();
     }
 }

@@ -1,5 +1,4 @@
-﻿using FluentTryCatch.Interfaces;
-using System;
+﻿using System;
 
 namespace FluentTryCatch.Interfaces;
 

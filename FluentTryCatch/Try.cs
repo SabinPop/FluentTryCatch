@@ -6,12 +6,11 @@ namespace FluentTryCatch;
 
 public sealed class Try : IWillTry, IWillFinally
 {
-    private readonly Action _action;
-
-    private readonly Dictionary<Type, CatchBlock> _catchBlocks = [];
-
     private Action? _finalAction;
     private Action? _builtAction;
+
+    private readonly Action _action;
+    private readonly Dictionary<Type, CatchBlock> _catchBlocks = [];
 
     private Try(Action action)
     {
@@ -69,7 +68,6 @@ public sealed class Try : IWillTry, IWillFinally
             }
 
             var block = _catchBlocks[ex.GetType()];
-
             if (block.PreserveCatchedException == true)
             {
                 throw;
