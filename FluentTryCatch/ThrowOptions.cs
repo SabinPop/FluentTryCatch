@@ -78,12 +78,12 @@ internal sealed class ThrowOptions<TResult> : ThrowOptionsBase<IWillTry<TResult>
 
     public IWillTry<TResult> And()
     {
-        return (IWillTry<TResult>)Parent;
+        return Parent;
     }
 
     public IWillFinally<TResult> Finally(Action finalAction)
     {
-        return (IWillFinally<TResult>)Parent;
+        return Parent.Finally(finalAction);
     }
 
     public Func<TResult?> Build()
@@ -114,7 +114,7 @@ internal sealed class ThrowOptions : ThrowOptionsBase<IWillTry>, IWillThrowWithM
 
     public IWillFinally Finally(Action finalAction)
     {
-        return (IWillFinally)Parent;
+        return Parent.Finally(finalAction);
     }
 
     public Action Build()
