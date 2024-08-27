@@ -4,14 +4,17 @@ using System.Linq;
 
 namespace FluentTryCatch;
 
-internal sealed class ThrowOptions : IWillThrowWithMessage
+internal abstract class ThrowOptionsBase<TParent>
+    where TParent : IWillTryMarker
 {
     private string _message = string.Empty;
 
-    internal ThrowOptions(IWillTry parent)
+    internal ThrowOptionsBase(TParent parent)
     {
-        Parent = parent;
+        Parent = parent ?? throw new ArgumentNullException(nameof(parent));
     }
+
+    protected TParent Parent { get; }
 
     public bool IncludesInnerException { get; internal set; }
 
@@ -25,14 +28,6 @@ internal sealed class ThrowOptions : IWillThrowWithMessage
             _message = value;
             HasMessage = !string.IsNullOrEmpty(value);
         }
-    }
-
-    public IWillTry Parent { get; private set; }
-
-    public IWillThrowComplete WithInnerException(bool includeInnerException = false)
-    {
-        IncludesInnerException = includeInnerException;
-        return this;
     }
 
     internal Exception? BuildException(Type? exceptionType, Exception? inner = null)
@@ -69,6 +64,48 @@ internal sealed class ThrowOptions : IWillThrowWithMessage
             return (Exception)Activator.CreateInstance(exceptionType);
         }
     }
+}
+
+internal sealed class ThrowOptions<TResult> : ThrowOptionsBase<IWillTry<TResult>>, IWillThrowWithMessage<TResult>
+{
+    public ThrowOptions(IWillTry<TResult> parent) : base(parent) { }
+
+    public IWillThrowComplete<TResult> WithInnerException(bool includeInnerException = false)
+    {
+        IncludesInnerException = includeInnerException;
+        return this;
+    }
+
+    public IWillTry<TResult> And()
+    {
+        return (IWillTry<TResult>)Parent;
+    }
+
+    public IWillFinally<TResult> Finally(Action finalAction)
+    {
+        return (IWillFinally<TResult>)Parent;
+    }
+
+    public Func<TResult?> Build()
+    {
+        return ((IWillFinally<TResult>)Parent).Build();
+    }
+
+    public TResult? Run()
+    {
+        return ((IWillFinally<TResult>)Parent).Run();
+    }
+}
+
+internal sealed class ThrowOptions : ThrowOptionsBase<IWillTry>, IWillThrowWithMessage
+{
+    public ThrowOptions(IWillTry parent) : base(parent) { }
+
+    public IWillThrowComplete WithInnerException(bool includeInnerException = false)
+    {
+        IncludesInnerException = includeInnerException;
+        return this;
+    }    
 
     public IWillTry And()
     {
