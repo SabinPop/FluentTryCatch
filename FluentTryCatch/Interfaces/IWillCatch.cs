@@ -2,13 +2,25 @@
 
 namespace FluentTryCatch.Interfaces;
 
+public interface IWillCatch<TResult> : IWillCatchNoThrow<TResult>
+{
+	IWillThrow<TResult> Throw<TException>() where TException : Exception;
+
+	IWillThrowComplete<TResult> Rethrow();
+}
+
+public interface IWillCatchNoThrow<TResult> : IWillFinally<TResult>
+{
+	IWillFinally<TResult> Finally(Action finalAction);
+}
+
 public interface IWillCatch : IWillFinally
 {
-    Type CatchedType { get; }
+	Type CatchedType { get; }
 
-    IWillThrow Throw<TException>() where TException : Exception;
+	IWillThrow Throw<TException>() where TException : Exception;
 
-    IWillThrowComplete Rethrow();
+	IWillThrowComplete Rethrow();
 
-    IWillFinally Finally(Action finalAction);
+	IWillFinally Finally(Action finalAction);
 }

@@ -4,89 +4,126 @@ using System.Linq;
 
 namespace FluentTryCatch;
 
-internal sealed class ThrowOptions : IWillThrowWithMessage
+internal abstract class ThrowOptionsBase<TParent>
+	where TParent : IWillTryMarker
 {
-    private string _message = string.Empty;
+	private string _message = string.Empty;
 
-    internal ThrowOptions(IWillTry parent)
-    {
-        Parent = parent;
-    }
+	internal ThrowOptionsBase(TParent parent)
+	{
+		Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+	}
 
-    public bool IncludesInnerException { get; internal set; }
+	protected TParent Parent { get; }
 
-    public bool HasMessage { get; private set; }
+	public bool IncludesInnerException { get; internal set; }
 
-    public string Message
-    {
-        get => _message;
-        internal set
-        {
-            _message = value;
-            HasMessage = !string.IsNullOrEmpty(value);
-        }
-    }
+	public bool HasMessage { get; private set; }
 
-    public IWillTry Parent { get; private set; }
+	public string Message
+	{
+		get => _message;
+		internal set
+		{
+			_message = value;
+			HasMessage = !string.IsNullOrEmpty(value);
+		}
+	}
 
-    public IWillThrowComplete WithInnerException(bool includeInnerException = false)
-    {
-        IncludesInnerException = includeInnerException;
-        return this;
-    }
+	internal Exception? BuildException(Type? exceptionType, Exception? inner = null)
+	{
+		// won't throw any exception, just catch it 
+		if (exceptionType is null)
+		{
+			return null;
+		}
 
-    internal Exception? BuildException(Type? exceptionType, Exception? inner = null)
-    {
-        // won't throw any exception, just catch it 
-        if (exceptionType is null)
-        {
-            return null;
-        }
+		if (HasMessage && IncludesInnerException)
+		{
+			return (Exception)Activator.CreateInstance(exceptionType, Message, inner);
+		}
+		else if (HasMessage)
+		{
+			var constructorInfo = exceptionType.GetConstructor([typeof(string)]);
 
-        if (HasMessage && IncludesInnerException)
-        {
-            return (Exception)Activator.CreateInstance(exceptionType, Message, inner);
-        }
-        else if (HasMessage)
-        {
-            var constructorInfo = exceptionType.GetConstructor([typeof(string)]);
+			if (constructorInfo.GetParameters().Any(x => x.Name == "message"))
+			{
+				return (Exception)constructorInfo.Invoke([Message]);
+			}
 
-            if (constructorInfo.GetParameters().Any(x => x.Name == "message"))
-            {
-                return (Exception)constructorInfo.Invoke([Message]);
-            }
+			constructorInfo = exceptionType.GetConstructor([typeof(string), typeof(Exception)]);
+			if (constructorInfo is not null)
+			{
+				return (Exception)constructorInfo.Invoke([Message, null]);
+			}
 
-            constructorInfo = exceptionType.GetConstructor([typeof(string), typeof(Exception)]);
-            if (constructorInfo is not null)
-            {
-                return (Exception)constructorInfo.Invoke([Message, null]);
-            }
+			return (Exception)Activator.CreateInstance(exceptionType, (string?)Message, null);
+		}
+		else
+		{
+			return (Exception)Activator.CreateInstance(exceptionType);
+		}
+	}
+}
 
-            return (Exception)Activator.CreateInstance(exceptionType, (string?)Message, null);
-        }
-        else
-        {
-            return (Exception)Activator.CreateInstance(exceptionType);
-        }
-    }
+internal sealed class ThrowOptions<TResult> : ThrowOptionsBase<IWillTry<TResult>>, IWillThrowWithMessage<TResult>
+{
+	public ThrowOptions(IWillTry<TResult> parent) : base(parent) { }
 
-    public IWillTry And()
-    {
-        return Parent;
-    }
+	public IWillThrowComplete<TResult> WithInnerException(bool includeInnerException = false)
+	{
+		IncludesInnerException = includeInnerException;
+		return this;
+	}
 
-    public IWillFinally Finally(Action finalAction)
-    {
-        return (IWillFinally)Parent;
-    }
+	public IWillTry<TResult> And()
+	{
+		return Parent;
+	}
 
-    public Action Build()
-    {
-        return ((IWillFinally)Parent).Build();
-    }
+	public IWillFinally<TResult> Finally(Action finalAction)
+	{
+		return Parent.Finally(finalAction);
+	}
 
-    public void Run()
-    {
-        ((IWillFinally)Parent).Run();
-    }
+	public Func<TResult?> Build()
+	{
+		return ((IWillFinally<TResult>)Parent).Build();
+	}
+
+	public TResult? Run()
+	{
+		return ((IWillFinally<TResult>)Parent).Run();
+	}
+}
+
+internal sealed class ThrowOptions : ThrowOptionsBase<IWillTry>, IWillThrowWithMessage
+{
+	public ThrowOptions(IWillTry parent) : base(parent) { }
+
+	public IWillThrowComplete WithInnerException(bool includeInnerException = false)
+	{
+		IncludesInnerException = includeInnerException;
+		return this;
+	}
+
+	public IWillTry And()
+	{
+		return Parent;
+	}
+
+	public IWillFinally Finally(Action finalAction)
+	{
+		return Parent.Finally(finalAction);
+	}
+
+	public Action Build()
+	{
+		return ((IWillFinally)Parent).Build();
+	}
+
+	public void Run()
+	{
+		((IWillFinally)Parent).Run();
+	}
 }
