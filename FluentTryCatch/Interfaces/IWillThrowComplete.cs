@@ -4,22 +4,22 @@ namespace FluentTryCatch.Interfaces;
 
 public interface IWillThrowComplete<TResult>
 {
-    IWillTry<TResult> And();
+	IWillTry<TResult> And();
 
-    IWillFinally<TResult> Finally(Action finalAction);
+	IWillFinally<TResult> Finally(Action finalAction);
 
-    Func<TResult?> Build();
+	Func<TResult?> Build();
 
-    TResult? Run();
+	TResult? Run();
 }
 
 public interface IWillThrowComplete
 {
-    IWillTry And();
+	IWillTry And();
 
-    IWillFinally Finally(Action finalAction);
+	IWillFinally Finally(Action finalAction);
 
-    Action Build();
+	Action Build();
 
-    void Run();
+	void Run();
 }

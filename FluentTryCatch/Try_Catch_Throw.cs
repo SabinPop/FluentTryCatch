@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FluentTryCatch
+﻿namespace FluentTryCatch
 {
-    internal class Try_Catch_Throw
-    {
-    }
+	internal class Try_Catch_Throw
+	{
+	}
 }

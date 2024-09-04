@@ -4,14 +4,14 @@ namespace FluentTryCatch.Interfaces;
 
 public interface IWillFinally<TResult>
 {
-    Func<TResult?> Build();
+	Func<TResult?> Build();
 
-    TResult? Run();
+	TResult? Run();
 }
 
 public interface IWillFinally
 {
-    Action Build();
+	Action Build();
 
-    void Run();
+	void Run();
 }
